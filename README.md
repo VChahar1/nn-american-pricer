@@ -1,7 +1,7 @@
 ## Quick start
 
 ```bash
-python -m venv .venv && source .venv/bin/activate
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python -m src.train          # generate data + train (~2-5 min CPU)
 python -m src.evaluate       # accuracy, speed, monotonicity

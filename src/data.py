@@ -19,13 +19,6 @@ PARAM_RANGES = {
 
 def generate_dataset(n_samples: int = 65_536, seed: int = 0) -> dict:
     """Generate training data: input parameters + BS02 American put prices.
-
-    Uses a power-of-2 sample count for optimal Sobol coverage. Filters out
-    any samples where BS02 produces NaN or negative prices (numerical
-    instability at extreme parameters).
-
-    Returns a dict with 'inputs' (n_valid x 5 array) and 'targets'
-    (n_valid array of normalized prices).
     """
     # Round up to next power of 2 for Sobol balance.
     n_sobol = 1
