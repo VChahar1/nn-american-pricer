@@ -7,20 +7,18 @@ from tqdm import tqdm
 from .bjerksund_stensland import american_put_bs02, bs_european_put
 
 
-# Input ranges. We normalize S by K (moneyness) to reduce the input space.
 PARAM_RANGES = {
-    "moneyness": (0.7, 1.3),     # S/K
-    "T":         (0.1, 3.0),     # time to expiry in years
-    "r":         (0.01, 0.10),   # risk-free rate
-    "sigma":     (0.10, 0.60),   # volatility
-    "q":         (0.00, 0.05),   # dividend yield
+    "moneyness": (0.7, 1.3),
+    "T": (0.1, 3.0),
+    "r": (0.01, 0.10),
+    "sigma": (0.10, 0.60),
+    "q": (0.00, 0.05),
 }
 
 
 def generate_dataset(n_samples: int = 65_536, seed: int = 0) -> dict:
-    """Generate training data: input parameters + BS02 American put prices.
-    """
-    # Round up to next power of 2 for Sobol balance.
+    """Generate training data: input parameters + BS02 American put prices."""
+
     n_sobol = 1
     while n_sobol < n_samples:
         n_sobol *= 2
@@ -49,13 +47,12 @@ def generate_dataset(n_samples: int = 65_536, seed: int = 0) -> dict:
             prices[i] = np.nan
             european_prices[i] = np.nan
 
-    # Filter out NaN, negative, and unreasonably large prices.
     valid = (
         np.isfinite(prices)
         & np.isfinite(european_prices)
         & (prices >= 0)
         & (european_prices >= 0)
-        & (prices < 100)  # price can't exceed strike (K=100 for a put)
+        & (prices < 100)
     )
 
     params = params[valid]
@@ -64,16 +61,16 @@ def generate_dataset(n_samples: int = 65_536, seed: int = 0) -> dict:
 
     n_filtered = n_sobol - valid.sum()
     if n_filtered > 0:
-        print(f"Filtered {n_filtered} samples with invalid BS02 prices "
-              f"({n_filtered/n_sobol:.1%} of total)")
+        print(
+            f"Filtered {n_filtered} samples with invalid BS02 prices "
+            f"({n_filtered / n_sobol:.1%} of total)"
+        )
 
-    # Trim to requested size if we oversampled.
     if len(prices) > n_samples:
         params = params[:n_samples]
         prices = prices[:n_samples]
         european_prices = european_prices[:n_samples]
 
-    # Normalize prices by K for scale-invariance.
     prices /= 100.0
     european_prices /= 100.0
 
@@ -90,7 +87,9 @@ def _demo() -> None:
     print(f"Generated {len(data['targets'])} samples")
     print(f"Input shape: {data['inputs'].shape}")
     print(f"Price range: [{data['targets'].min():.4f}, {data['targets'].max():.4f}]")
-    print(f"Mean early-exercise premium: {(data['targets'] - data['european']).mean():.4f}")
+    print(
+        f"Mean early-exercise premium: {(data['targets'] - data['european']).mean():.4f}"
+    )
 
 
 if __name__ == "__main__":

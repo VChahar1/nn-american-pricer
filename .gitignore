@@ -6,3 +6,11 @@ __pycache__/
 .DS_Store
 data/
 models/
+
+.env
+.env.*
+!.env.example
+*credentials*
+*.pem
+*.key
+.ipynb_checkpoints/

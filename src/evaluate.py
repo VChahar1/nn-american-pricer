@@ -28,13 +28,11 @@ def evaluate(n_test: int = 10_000, seed: int = 99) -> dict:
     X_norm = (X - mean) / std
     y_true = test_data["targets"]
 
-    # NN prediction.
     t0 = time.time()
     with torch.no_grad():
         y_pred = model(X_norm).numpy()
     nn_time = time.time() - t0
 
-    # BS02 timing on same inputs for comparison.
     t0 = time.time()
     for i in range(min(1000, n_test)):
         m, T, r, sigma, q = test_data["inputs"][i]
@@ -67,7 +65,6 @@ def evaluate(n_test: int = 10_000, seed: int = 99) -> dict:
     print(f"  BS02 time:          {results['bs02_time_ms']:.1f} ms ({n_test} samples)")
     print(f"  Speedup:            {results['speedup']:.0f}×")
 
-    # Monotonicity check: price should increase with sigma (all else equal).
     print()
     print("Monotonicity check (dP/dσ > 0):")
     base = torch.tensor([[1.0, 1.0, 0.05, 0.3, 0.02]], dtype=torch.float32)
@@ -80,11 +77,15 @@ def evaluate(n_test: int = 10_000, seed: int = 99) -> dict:
         x_norm = (x - mean) / std
         with torch.no_grad():
             nn_prices.append(model(x_norm).item())
-    is_monotone = all(nn_prices[i] <= nn_prices[i+1] for i in range(len(nn_prices)-1))
+    is_monotone = all(
+        nn_prices[i] <= nn_prices[i + 1] for i in range(len(nn_prices) - 1)
+    )
     print(f"  Price monotonically increasing in σ: {is_monotone}")
     if not is_monotone:
-        violations = sum(1 for i in range(len(nn_prices)-1) if nn_prices[i] > nn_prices[i+1])
-        print(f"  Violations: {violations} out of {len(nn_prices)-1} intervals")
+        violations = sum(
+            1 for i in range(len(nn_prices) - 1) if nn_prices[i] > nn_prices[i + 1]
+        )
+        print(f"  Violations: {violations} out of {len(nn_prices) - 1} intervals")
 
     return results
 

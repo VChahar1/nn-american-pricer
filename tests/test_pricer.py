@@ -1,4 +1,5 @@
 """Tests for the BS02 pricer and the NN workflow."""
+
 from __future__ import annotations
 
 import numpy as np
