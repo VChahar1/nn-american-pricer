@@ -1,12 +1,8 @@
-"""Training loop for the American put surrogate.
-
-Trains on BS02 ground-truth prices, validates on a held-out set,
-saves the best model by validation loss.
-
-Run `python -m src.train` to train and save a model.
-"""
+"Training loop for the American put surrogate."
 
 from __future__ import annotations
+
+from pathlib import Path
 
 import time
 
@@ -29,6 +25,7 @@ def train_model(
     device: str = "cpu",
 ) -> dict:
     """Train the MLP and return results."""
+    Path("models").mkdir(exist_ok=True)
     print("Generating training data...")
     train_data = generate_dataset(n_train, seed=seed)
     val_data = generate_dataset(n_val, seed=seed + 1)
@@ -44,7 +41,6 @@ def train_model(
     assert torch.isfinite(y_val).all(), "NaN in validation targets"
     print(f"Data verified: {len(y_train)} train, {len(y_val)} val, no NaN")
 
-    # Normalize inputs to zero-mean, unit-variance.
     mean = X_train.mean(dim=0)
     std = X_train.std(dim=0)
     X_train = (X_train - mean) / std
@@ -91,15 +87,22 @@ def train_model(
 
         if val_loss < best_val_loss:
             best_val_loss = val_loss
-            torch.save({
-                "model_state": model.state_dict(),
-                "mean": mean, "std": std,
-                "val_loss": val_loss, "epoch": epoch,
-            }, "models/best_model.pt")
+            torch.save(
+                {
+                    "model_state": model.state_dict(),
+                    "mean": mean,
+                    "std": std,
+                    "val_loss": val_loss,
+                    "epoch": epoch,
+                },
+                "models/best_model.pt",
+            )
 
         if epoch % 20 == 0 or epoch == 1:
-            print(f"  Epoch {epoch:>4d}: train={epoch_loss:.6f}  val={val_loss:.6f}"
-                  f"  lr={optimizer.param_groups[0]['lr']:.1e}")
+            print(
+                f"  Epoch {epoch:>4d}: train={epoch_loss:.6f}  val={val_loss:.6f}"
+                f"  lr={optimizer.param_groups[0]['lr']:.1e}"
+            )
 
     elapsed = time.time() - t0
     print(f"\nTraining complete in {elapsed:.1f}s")
@@ -110,7 +113,8 @@ def train_model(
         "val_losses": val_losses,
         "best_val_loss": best_val_loss,
         "elapsed": elapsed,
-        "mean": mean, "std": std,
+        "mean": mean,
+        "std": std,
     }
 
 
