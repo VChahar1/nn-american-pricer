@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import time
 
 import numpy as np
@@ -23,6 +25,7 @@ def train_model(
     device: str = "cpu",
 ) -> dict:
     """Train the MLP and return results."""
+    Path("models").mkdir(exist_ok=True)
     print("Generating training data...")
     train_data = generate_dataset(n_train, seed=seed)
     val_data = generate_dataset(n_val, seed=seed + 1)

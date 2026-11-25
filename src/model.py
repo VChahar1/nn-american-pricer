@@ -21,10 +21,12 @@ class AmericanPutMLP(nn.Module):
         self.net = nn.Sequential(*layers)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Map normalized option parameters to strike-normalized prices."""
         return self.net(x).squeeze(-1)
 
 
 def count_params(model: nn.Module) -> int:
+    """Count trainable scalar parameters."""
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
